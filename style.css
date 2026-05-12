@@ -236,6 +236,13 @@ body {
     padding: 1.5rem;
     height: 400px;
     position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container canvas {
+    flex: 1;
+    min-height: 0;
 }
 
 .section-title {
