@@ -1,0 +1,30 @@
+name: Atualizar Dados SESAP
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # Executa automaticamente todo dia às 03:00 da manhã (UTC)
+  workflow_dispatch: # Permite rodar manualmente clicando num botão
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Permissão necessária para salvar arquivos
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      
+      - name: Baixar novos dados da API do ComprasNet
+        run: |
+          echo "const staticData = " > data.js
+          curl -s "https://contratos.comprasnet.gov.br/api/contrato/ug/925550" >> data.js
+          echo ";" >> data.js
+          
+      - name: Commit e Push das alterações
+        run: |
+          git config --global user.name "Robô do Dashboard SESAP"
+          git config --global user.email "robo@sesap.rn.gov.br"
+          git add data.js
+          git diff --quiet && git diff --staged --quiet || git commit -m "Atualizando contratos (Automático)"
+          git push
