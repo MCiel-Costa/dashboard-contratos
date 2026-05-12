@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transparência - Dashboard de Contratos</title>
+    <meta name="description" content="Dashboard interativo para visualização de dados de contratos governamentais.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container" style="justify-content: center; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+                <img src="logo.png" alt="DIMP-SESAP" style="max-width: 100%; height: auto; max-height: 140px; object-fit: contain;">
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-view="visao-geral">
+                    <i data-lucide="layout-dashboard"></i>
+                    Visão Geral
+                </a>
+                <a href="#" class="nav-item" data-view="contratos">
+                    <i data-lucide="file-text"></i>
+                    Contratos
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-titles">
+                    <h2>Contratos SESAP-RN</h2>
+                    <p>Secretaria de Estado da Saúde Pública - UG: 925550</p>
+                </div>
+                <div class="theme-toggle" id="theme-toggle">
+                    <i data-lucide="moon"></i>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <!-- KPIs -->
+                <section class="kpi-grid" id="section-kpis">
+                    <div class="kpi-card glass">
+                        <div class="kpi-icon-wrapper" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+                            <i data-lucide="file-check-2"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <h3>Total de Contratos</h3>
+                            <p class="kpi-value" id="kpi-total-contratos">0</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass">
+                        <div class="kpi-icon-wrapper" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                            <i data-lucide="dollar-sign"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <h3>Valor Total Global</h3>
+                            <p class="kpi-value" id="kpi-valor-total">R$ 0,00</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass">
+                        <div class="kpi-icon-wrapper" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                            <i data-lucide="clock"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <h3>A Vencer em 30 Dias</h3>
+                            <p class="kpi-value" id="kpi-vencer-30">0</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass" style="justify-content: center; flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+                        <h3 style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500;">Filtrar por Ano</h3>
+                        <select id="year-filter" class="search-input" style="width: 100%; font-weight: bold; background: var(--bg-primary); padding: 0.5rem;">
+                            <option value="all">Todos os Anos</option>
+                        </select>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="charts-section" id="section-charts">
+                    <div class="chart-container glass">
+                        <h3 class="section-title">Status dos Contratos</h3>
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                    <div class="chart-container glass">
+                        <h3 class="section-title">Vencimentos por Mês</h3>
+                        <canvas id="vencimentoChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Contracts Table -->
+                <section class="table-section glass" id="section-table">
+                    <div class="table-header">
+                        <h3 class="section-title">Lista de Contratos</h3>
+                        <div class="table-actions" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <select id="status-filter" class="search-input" style="width: 150px; padding: 0.5rem;">
+                                <option value="all">Todos (Status)</option>
+                                <option value="Ativo">Ativos</option>
+                                <option value="Vencido">Vencidos</option>
+                            </select>
+                            <input type="text" id="search-input" placeholder="Buscar fornecedor ou objeto..." class="search-input">
+                            <button id="btn-reset-filter" class="search-input" style="width: auto; cursor: pointer; display: none; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: #ef4444; padding: 0.5rem 1rem;">
+                                Limpar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="contracts-table">
+                            <thead>
+                                <tr>
+                                    <th>Nº Contrato</th>
+                                    <th>Fornecedor</th>
+                                    <th>Objeto</th>
+                                    <th>Valor Global</th>
+                                    <th>Vencimento</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contracts-tbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="loading-spinner" class="loading-spinner">
+                        <i data-lucide="loader-2" class="spin"></i> Carregando dados...
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
