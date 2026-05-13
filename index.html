@@ -28,25 +28,37 @@
                     <i data-lucide="file-text"></i>
                     Contratos
                 </a>
+                <a href="#" class="nav-item" data-view="valores">
+                    <i data-lucide="bar-chart-3"></i>
+                    Valores Globais
+                </a>
+                <a href="#" class="nav-item" data-view="vencer-30">
+                    <i data-lucide="alert-circle"></i>
+                    A Vencer
+                </a>
             </nav>
+            <div class="sidebar-footer" style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="theme-toggle" id="theme-toggle">
+                    <i data-lucide="moon"></i>
+                    <span>Alternar Tema</span>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="top-header">
+            <header class="top-header" style="background-image: url('banner-rn.png');">
+                <div class="header-overlay"></div>
                 <div class="header-titles">
                     <h2>Contratos SESAP-RN</h2>
                     <p>Secretaria de Estado da Saúde Pública - UG: 925550</p>
-                </div>
-                <div class="theme-toggle" id="theme-toggle">
-                    <i data-lucide="moon"></i>
                 </div>
             </header>
 
             <div class="dashboard-content">
                 <!-- KPIs -->
                 <section class="kpi-grid" id="section-kpis">
-                    <div class="kpi-card glass">
+                    <div class="kpi-card glass clickable-card" id="card-total-contratos">
                         <div class="kpi-icon-wrapper" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
                             <i data-lucide="file-check-2"></i>
                         </div>
@@ -55,7 +67,7 @@
                             <p class="kpi-value" id="kpi-total-contratos">0</p>
                         </div>
                     </div>
-                    <div class="kpi-card glass">
+                    <div class="kpi-card glass clickable-card" id="card-valor-total">
                         <div class="kpi-icon-wrapper" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
                             <i data-lucide="dollar-sign"></i>
                         </div>
@@ -64,13 +76,13 @@
                             <p class="kpi-value" id="kpi-valor-total">R$ 0,00</p>
                         </div>
                     </div>
-                    <div class="kpi-card glass">
+                    <div class="kpi-card glass clickable-card" id="card-vencer-30">
                         <div class="kpi-icon-wrapper" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
                             <i data-lucide="clock"></i>
                         </div>
                         <div class="kpi-details">
                             <h3>A Vencer em 30 Dias</h3>
-                            <p class="kpi-value" id="kpi-vencer-30">0</p>
+                            <p class="kpi-value" id="kpi-vencer-30-val">0</p>
                         </div>
                     </div>
                     <div class="kpi-card glass" style="justify-content: center; flex-direction: column; align-items: flex-start; gap: 0.5rem;">
@@ -93,15 +105,39 @@
                     </div>
                 </section>
 
+                <!-- Valores Section -->
+                <section class="charts-section" id="section-valores" style="display: none; margin-bottom: 2.5rem;">
+                    <div class="chart-container glass" style="width: 100%; grid-column: 1 / -1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3 class="section-title" style="margin-bottom: 0;">Valores dos Contratos</h3>
+                            <button id="btn-back-visao" class="search-input" style="width: auto; cursor: pointer; padding: 0.5rem 1rem;">Voltar para Visão Geral</button>
+                        </div>
+                        <div style="position: relative; height: 500px; width: 100%;">
+                            <canvas id="valoresChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Contracts Table -->
                 <section class="table-section glass" id="section-table">
-                    <div class="table-header">
-                        <h3 class="section-title">Lista de Contratos</h3>
+                    <div class="table-header" style="flex-wrap: wrap; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                            <h3 class="section-title" style="margin-bottom: 0;">Lista de Contratos</h3>
+                            <button id="btn-back-visao-tabela" class="search-input" style="width: auto; cursor: pointer; padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                                Voltar para Visão Geral
+                            </button>
+                            <div class="update-info" style="font-size: 0.85rem; color: var(--text-secondary); opacity: 0.8; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-secondary); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid var(--border-color);">
+                                <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+                                <span>Última atualização: <span id="last-update-date">Carregando...</span></span>
+                            </div>
+                        </div>
                         <div class="table-actions" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                             <select id="status-filter" class="search-input" style="width: 150px; padding: 0.5rem;">
                                 <option value="all">Todos (Status)</option>
                                 <option value="Ativo">Ativos</option>
                                 <option value="Vencido">Vencidos</option>
+                                <option value="A Vencer">A Vencer</option>
                             </select>
                             <input type="text" id="search-input" placeholder="Buscar fornecedor ou objeto..." class="search-input">
                             <button id="btn-reset-filter" class="search-input" style="width: auto; cursor: pointer; display: none; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: #ef4444; padding: 0.5rem 1rem;">

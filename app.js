@@ -25,29 +25,82 @@ document.addEventListener('DOMContentLoaded', () => {
         const sectionKpis = document.getElementById('section-kpis');
         const sectionCharts = document.getElementById('section-charts');
         const sectionTable = document.getElementById('section-table');
+        const sectionValores = document.getElementById('section-valores');
+        const cardValorTotal = document.getElementById('card-valor-total');
+        const cardTotalContratos = document.getElementById('card-total-contratos');
+        const cardVencer30 = document.getElementById('card-vencer-30');
+        const btnBackVisao = document.getElementById('btn-back-visao');
+        const btnBackVisaoTabela = document.getElementById('btn-back-visao-tabela');
 
         const yearFilter = document.getElementById('year-filter');
         const statusFilter = document.getElementById('status-filter');
 
         let allContracts = [];
+        let currentFilteredData = [];
         let statusChartInstance = null;
         let vencimentoChartInstance = null;
+        let valoresChartInstance = null;
 
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                navItems.forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
                 
-                const view = item.getAttribute('data-view');
-                if (view === 'visao-geral') {
-                    if(sectionKpis) sectionKpis.style.display = 'grid';
-                    if(sectionCharts) sectionCharts.style.display = 'grid';
-                    if(sectionTable) sectionTable.style.display = 'block';
-                } else if (view === 'contratos') {
-                    if(sectionKpis) sectionKpis.style.display = 'none';
-                    if(sectionCharts) sectionCharts.style.display = 'none';
-                    if(sectionTable) sectionTable.style.display = 'block';
+                const updateView = () => {
+                    navItems.forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    const view = item.getAttribute('data-view');
+                    if (view === 'visao-geral') {
+                        let needsUpdate = false;
+                        if(statusFilter && statusFilter.value !== 'all') {
+                            statusFilter.value = 'all';
+                            needsUpdate = true;
+                        }
+                        if(searchInput && searchInput.value !== '') {
+                            searchInput.value = '';
+                            needsUpdate = true;
+                        }
+                        if (needsUpdate) applyFilters();
+
+                        if(sectionKpis) sectionKpis.style.display = 'grid';
+                        if(sectionCharts) sectionCharts.style.display = 'grid';
+                        if(sectionTable) sectionTable.style.display = 'none';
+                        if(sectionValores) sectionValores.style.display = 'none';
+                    } else if (view === 'contratos') {
+                        if(sectionKpis) sectionKpis.style.display = 'none';
+                        if(sectionCharts) sectionCharts.style.display = 'none';
+                        if(sectionTable) sectionTable.style.display = 'block';
+                        if(sectionValores) sectionValores.style.display = 'none';
+                    } else if (view === 'valores') {
+                        if(sectionKpis) sectionKpis.style.display = 'none';
+                        if(sectionCharts) sectionCharts.style.display = 'none';
+                        if(sectionTable) sectionTable.style.display = 'none';
+                        if(sectionValores) {
+                            sectionValores.style.display = 'block';
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                        renderValoresChart(currentFilteredData);
+                    } else if (view === 'vencer-30') {
+                        if(statusFilter && statusFilter.value !== 'A Vencer') {
+                            statusFilter.value = 'A Vencer';
+                            if(yearFilter) yearFilter.value = 'all';
+                            if(searchInput) searchInput.value = '';
+                            applyFilters();
+                        }
+                        if(sectionKpis) sectionKpis.style.display = 'none';
+                        if(sectionCharts) sectionCharts.style.display = 'none';
+                        if(sectionValores) sectionValores.style.display = 'none';
+                        if(sectionTable) {
+                            sectionTable.style.display = 'block';
+                            sectionTable.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                };
+
+                if (document.startViewTransition) {
+                    document.startViewTransition(updateView);
+                } else {
+                    updateView();
                 }
             });
         });
@@ -58,22 +111,98 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if(themeToggle) {
+            const updateThemeUI = (theme) => {
+                const icon = themeToggle.querySelector('i');
+                const span = themeToggle.querySelector('span');
+                if (theme === 'dark') {
+                    if(icon) icon.setAttribute('data-lucide', 'sun');
+                    if(span) span.innerText = 'Modo Claro';
+                } else {
+                    if(icon) icon.setAttribute('data-lucide', 'moon');
+                    if(span) span.innerText = 'Modo Escuro';
+                }
+                if (window.lucide) lucide.createIcons();
+            };
+
+            // Initialize UI
+            updateThemeUI(document.documentElement.getAttribute('data-theme'));
+
             themeToggle.addEventListener('click', () => {
                 let theme = document.documentElement.getAttribute('data-theme');
-                if (theme === 'dark') {
-                    document.documentElement.setAttribute('data-theme', 'light');
-                    localStorage.setItem('theme', 'light');
-                } else {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
-                }
+                let newTheme = theme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeUI(newTheme);
                 updateChartsTheme();
+            });
+        }
+
+        if(cardValorTotal) {
+            cardValorTotal.addEventListener('click', () => {
+                const performTransition = () => {
+                    navItems.forEach(n => n.classList.remove('active'));
+                    const navValores = document.querySelector('[data-view="valores"]');
+                    if(navValores) navValores.classList.add('active');
+                    if(sectionKpis) sectionKpis.style.display = 'none';
+                    if(sectionCharts) sectionCharts.style.display = 'none';
+                    if(sectionTable) sectionTable.style.display = 'none';
+                    if(sectionValores) {
+                        sectionValores.style.display = 'block';
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                    renderValoresChart(currentFilteredData);
+                };
+
+                if (document.startViewTransition) {
+                    document.startViewTransition(performTransition);
+                } else {
+                    performTransition();
+                    if(sectionValores) sectionValores.style.animation = 'scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+                }
+            });
+        }
+
+        if(cardTotalContratos) {
+            cardTotalContratos.addEventListener('click', () => {
+                if(sectionTable) sectionTable.style.viewTransitionName = 'expand-table';
+                filterTableByStatus('all');
+            });
+        }
+
+        if(cardVencer30) {
+            cardVencer30.addEventListener('click', () => {
+                if(sectionTable) sectionTable.style.viewTransitionName = 'expand-vencer';
+                filterTableByStatus('A Vencer');
+            });
+        }
+
+        if(btnBackVisao) {
+            btnBackVisao.addEventListener('click', () => {
+                const navVisao = document.querySelector('[data-view="visao-geral"]');
+                if(navVisao) navVisao.click();
+            });
+        }
+
+        if(btnBackVisaoTabela) {
+            btnBackVisaoTabela.addEventListener('click', () => {
+                const navVisao = document.querySelector('[data-view="visao-geral"]');
+                if(navVisao) navVisao.click();
             });
         }
 
         function loadStaticData() {
             if (typeof staticData !== 'undefined' && staticData.length > 0) {
                 allContracts = staticData;
+                
+                // Exibir data de atualização
+                const lastUpdateSpan = document.getElementById('last-update-date');
+                if (lastUpdateSpan && typeof lastUpdateDate !== 'undefined') {
+                    lastUpdateSpan.innerText = lastUpdateDate;
+                } else if (lastUpdateSpan) {
+                    lastUpdateSpan.innerText = 'Não disponível';
+                }
+
                 populateYearDropdown(allContracts);
                 applyFilters();
                 if(loadingSpinner) loadingSpinner.style.display = 'none';
@@ -137,13 +266,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 let statusMatch = true;
                 let isVencido = false;
+                let isVencendo = false;
                 if (c.vigencia_fim) {
                     const endDate = new Date(c.vigencia_fim);
-                    if (endDate < now) isVencido = true;
+                    if (endDate < now) {
+                        isVencido = true;
+                    } else {
+                        const thirtyDaysFromNow = new Date();
+                        thirtyDaysFromNow.setDate(now.getDate() + 30);
+                        if (endDate <= thirtyDaysFromNow) {
+                            isVencendo = true;
+                        }
+                    }
                 }
                 
                 if (selectedStatus === 'Ativo' && isVencido) statusMatch = false;
                 if (selectedStatus === 'Vencido' && !isVencido) statusMatch = false;
+                if (selectedStatus === 'A Vencer' && !isVencendo) statusMatch = false;
                 
                 let searchMatch = true;
                 if (term.length > 0) {
@@ -172,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function processDashboardData(data) {
+            currentFilteredData = data;
             let totalValor = 0;
             let vencer30Dias = 0;
             let countAtivos = 0;
@@ -269,27 +409,66 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        function filterTableByStatus(statusVal) {
+            const performTransition = () => {
+                if(statusFilter) statusFilter.value = statusVal;
+                if(yearFilter) yearFilter.value = 'all';
+                if(searchInput) searchInput.value = '';
+                applyFilters();
+                
+                navItems.forEach(n => n.classList.remove('active'));
+                let contBtn = document.querySelector('[data-view="contratos"]');
+                if (statusVal === 'A Vencer') {
+                    contBtn = document.querySelector('[data-view="vencer-30"]');
+                }
+                if(contBtn) contBtn.classList.add('active');
+                
+                if(sectionKpis) sectionKpis.style.display = 'none';
+                if(sectionCharts) sectionCharts.style.display = 'none';
+                if(sectionValores) sectionValores.style.display = 'none';
+                if(sectionTable) {
+                    sectionTable.style.display = 'block';
+                    sectionTable.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+
+            if (document.startViewTransition) {
+                document.startViewTransition(performTransition);
+            } else {
+                performTransition();
+            }
+        }
+
         function filterTableByMonth(monthYear) {
-            const [mStr, yStr] = monthYear.split('/');
-            
-            const filtered = allContracts.filter(c => {
-                if (!c.vigencia_fim) return false;
-                const [y, m, d] = c.vigencia_fim.split('-');
-                return (m === mStr && y === yStr);
-            });
-            
-            renderTable(filtered, new Date(), new Date());
-            if(btnResetFilter) btnResetFilter.style.display = 'block';
-            
-            navItems.forEach(n => n.classList.remove('active'));
-            const contBtn = document.querySelector('[data-view="contratos"]');
-            if(contBtn) contBtn.classList.add('active');
-            
-            if(sectionKpis) sectionKpis.style.display = 'none';
-            if(sectionCharts) sectionCharts.style.display = 'none';
-            if(sectionTable) {
-                sectionTable.style.display = 'block';
-                sectionTable.scrollIntoView({ behavior: 'smooth' });
+            const performTransition = () => {
+                const [mStr, yStr] = monthYear.split('/');
+                
+                const filtered = allContracts.filter(c => {
+                    if (!c.vigencia_fim) return false;
+                    const [y, m, d] = c.vigencia_fim.split('-');
+                    return (m === mStr && y === yStr);
+                });
+                
+                renderTable(filtered, new Date(), new Date());
+                if(btnResetFilter) btnResetFilter.style.display = 'block';
+                
+                navItems.forEach(n => n.classList.remove('active'));
+                const contBtn = document.querySelector('[data-view="contratos"]');
+                if(contBtn) contBtn.classList.add('active');
+                
+                if(sectionKpis) sectionKpis.style.display = 'none';
+                if(sectionCharts) sectionCharts.style.display = 'none';
+                if(sectionValores) sectionValores.style.display = 'none';
+                if(sectionTable) {
+                    sectionTable.style.display = 'block';
+                    sectionTable.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+
+            if (document.startViewTransition) {
+                document.startViewTransition(performTransition);
+            } else {
+                performTransition();
             }
         }
 
@@ -342,7 +521,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '70%',
+                    cutout: '75%',
+                    radius: '80%',
+                    onClick: (e, elements) => {
+                        if (elements && elements.length > 0) {
+                            const index = elements[0].index;
+                            const status = statusChartInstance.data.labels[index];
+                            filterTableByStatus(status === 'Ativos' ? 'Ativo' : 'Vencido');
+                        }
+                    },
+                    onHover: (event, chartElement) => {
+                        if(event.native && event.native.target) {
+                            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                        }
+                    },
                     plugins: {
                         legend: { 
                             position: 'bottom',
@@ -365,15 +557,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         fill: true,
                         tension: 0.4,
                         pointBackgroundColor: colors.primaryColor,
-                        pointRadius: 5,
-                        hitRadius: 10,
-                        hoverRadius: 7,
+                        pointRadius: 4,
+                        hitRadius: 15,
+                        hoverRadius: 6,
                         cursor: 'pointer'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     onClick: (e, elements) => {
                         if (elements && elements.length > 0) {
                             const index = elements[0].index;
@@ -401,7 +597,75 @@ document.addEventListener('DOMContentLoaded', () => {
                             ticks: { stepSize: 1 }
                         },
                         x: {
-                            grid: { display: false }
+                            grid: { display: false },
+                            ticks: { padding: 15 }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20,
+                            left: 15,
+                            right: 15
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderValoresChart(data) {
+            const canvasValores = document.getElementById('valoresChart');
+            if(!canvasValores || typeof Chart === 'undefined') return;
+
+            const sortedData = [...data]
+                .filter(c => c.valor_global)
+                .sort((a, b) => parseCurrencyBR(b.valor_global) - parseCurrencyBR(a.valor_global))
+                .slice(0, 20);
+            
+            const labels = sortedData.map(c => c.numero || 'Sem Nº');
+            const values = sortedData.map(c => parseCurrencyBR(c.valor_global));
+            const tooltips = sortedData.map(c => c.fornecedor ? c.fornecedor.nome : 'N/A');
+
+            const ctxValores = canvasValores.getContext('2d');
+            const colors = getChartColors();
+
+            if (valoresChartInstance) valoresChartInstance.destroy();
+
+            valoresChartInstance = new Chart(ctxValores, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Valor do Contrato',
+                        data: values,
+                        backgroundColor: colors.secondaryColor,
+                        hoverBackgroundColor: colors.secondaryHover,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => 'Contrato: ' + context[0].label,
+                                afterTitle: (context) => tooltips[context[0].dataIndex],
+                                label: (context) => formatBRL(context.raw)
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: colors.gridColor },
+                            ticks: {
+                                callback: (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumSignificantDigits: 3 }).format(value)
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: colors.textColor }
                         }
                     }
                 }

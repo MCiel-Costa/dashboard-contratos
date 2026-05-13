@@ -137,40 +137,63 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2.5rem;
+    position: relative;
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 16px;
+    padding: 1.25rem 3rem;
+    min-height: 80px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.header-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.4) 40%, transparent 80%);
+    z-index: 0;
+}
+
+.header-titles, .theme-toggle {
+    position: relative;
+    z-index: 1;
 }
 
 .header-titles h2 {
     font-family: 'Outfit', sans-serif;
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 700;
     margin-bottom: 0.25rem;
-    background: linear-gradient(135deg, var(--text-primary), var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .header-titles p {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.05rem;
 }
 
 .theme-toggle {
     cursor: pointer;
-    width: 44px;
-    height: 44px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    gap: 1rem;
+    padding: 0.875rem 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.2s ease;
 }
 
 .theme-toggle:hover {
-    transform: rotate(15deg) scale(1.05);
-    background-color: var(--table-hover);
+    background-color: rgba(99, 102, 241, 0.1);
+    color: var(--accent);
+}
+
+.theme-toggle i {
+    width: 20px;
+    height: 20px;
 }
 
 /* KPIs */
@@ -193,6 +216,42 @@ body {
 
 .kpi-card:hover {
     transform: translateY(-5px);
+}
+
+.clickable-card {
+    cursor: pointer;
+}
+
+.clickable-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+}
+
+#card-valor-total {
+    view-transition-name: expand-card;
+}
+
+#section-valores {
+    view-transition-name: expand-card;
+}
+
+#card-total-contratos {
+    view-transition-name: expand-table;
+}
+
+#card-vencer-30 {
+    view-transition-name: expand-vencer;
+}
+
+@keyframes scaleUp {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .kpi-icon-wrapper {
@@ -219,7 +278,7 @@ body {
 
 .kpi-value {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.35rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: var(--text-primary);
 }
@@ -256,6 +315,7 @@ body {
 /* Table */
 .table-section {
     padding: 1.5rem;
+    display: none;
 }
 
 .table-header {
