@@ -365,7 +365,7 @@ body {
     padding: 1rem;
     font-size: 0.95rem;
     border-bottom: 1px solid var(--border-color);
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 .contracts-table tbody tr {
@@ -374,6 +374,87 @@ body {
 
 .contracts-table tbody tr:hover {
     background-color: var(--table-hover);
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.clickable-row.expanded {
+    background-color: var(--bg-primary);
+}
+
+.clickable-row.expanded td {
+    border-bottom: none;
+}
+
+.details-row {
+    background-color: var(--bg-primary) !important;
+}
+
+.details-row td {
+    padding: 0 !important;
+    border-bottom: none !important;
+}
+
+.details-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease-out;
+    overflow: hidden;
+}
+
+.details-row.expanded .details-wrapper {
+    grid-template-rows: 1fr;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.details-container {
+    min-height: 0;
+    padding: 0 1.5rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.detail-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.expand-icon {
+    transition: transform 0.3s ease;
+    color: var(--text-secondary);
+}
+
+tr.expanded .expand-icon {
+    transform: rotate(180deg);
 }
 
 .obj-cell {

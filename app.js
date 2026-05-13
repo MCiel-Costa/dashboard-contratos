@@ -371,11 +371,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if(!tbody) return;
             tbody.innerHTML = '';
             
-            data.forEach(c => {
+            data.forEach((c, index) => {
                 const tr = document.createElement('tr');
+                tr.classList.add('clickable-row');
+                tr.setAttribute('data-id', c.id || index);
                 
                 const fornecedor = c.fornecedor ? c.fornecedor.nome : 'N/A';
-                const valor = c.valor_global ? formatBRL(parseCurrencyBR(c.valor_global)) : 'R$ 0,00';
+                const valorGlobalNum = parseCurrencyBR(c.valor_global);
+                const valorAcumuladoNum = parseCurrencyBR(c.valor_acumulado);
+                const saldoNum = Math.max(0, valorGlobalNum - valorAcumuladoNum);
+                
+                const valor = formatBRL(valorGlobalNum);
+                const valorParcela = c.valor_parcela ? formatBRL(parseCurrencyBR(c.valor_parcela)) : 'N/A';
+                const saldo = formatBRL(saldoNum);
+                
                 let dataVenc = 'N/A';
                 let statusClass = 'status-ativo';
                 let statusText = c.situacao || 'Ativo';
@@ -403,10 +412,78 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="obj-cell" title="${c.objeto}">${c.objeto || '-'}</td>
                     <td>${valor}</td>
                     <td>${dataVenc}</td>
-                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <div class="status-cell">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            <i data-lucide="chevron-down" class="expand-icon" style="width: 16px; height: 16px;"></i>
+                        </div>
+                    </td>
                 `;
+
+                const detailTr = document.createElement('tr');
+                detailTr.classList.add('details-row');
+                detailTr.id = `details-${c.id || index}`;
+                detailTr.innerHTML = `
+                    <td colspan="6">
+                        <div class="details-wrapper">
+                            <div class="details-container">
+                                <div class="details-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Valor Total</span>
+                                        <span class="detail-value">${valor}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Nº de Parcelas</span>
+                                        <span class="detail-value">${c.num_parcelas || 'N/A'}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Valor da Parcela</span>
+                                        <span class="detail-value">${valorParcela}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Saldo Remanescente</span>
+                                        <span class="detail-value">${saldo}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">CNPJ/CPF Fornecedor</span>
+                                        <span class="detail-value">${c.fornecedor ? c.fornecedor.cnpj_cpf_idgener : 'N/A'}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Processo</span>
+                                        <span class="detail-value">${c.processo || 'N/A'}</span>
+                                    </div>
+                                </div>
+                                <div style="padding-bottom: 1.5rem; display: flex; gap: 1rem;">
+                                    <a href="https://contratos.comprasnet.gov.br/transparencia/contratos/${c.id}" target="_blank" class="search-input" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; width: auto; font-size: 0.85rem; padding: 0.5rem 1rem;">
+                                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                        Ver no ComprasNet
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                tr.addEventListener('click', () => {
+                    const isExpanded = detailTr.classList.contains('expanded');
+                    
+                    // Close other expanded rows (optional, but cleaner)
+                    document.querySelectorAll('.details-row.expanded').forEach(el => {
+                        if (el !== detailTr) {
+                            el.classList.remove('expanded');
+                            el.previousElementSibling.classList.remove('expanded');
+                        }
+                    });
+
+                    detailTr.classList.toggle('expanded');
+                    tr.classList.toggle('expanded');
+                });
+
                 tbody.appendChild(tr);
+                tbody.appendChild(detailTr);
             });
+            
+            if (window.lucide) lucide.createIcons();
         }
 
         function filterTableByStatus(statusVal) {
