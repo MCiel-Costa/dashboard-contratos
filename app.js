@@ -379,11 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fornecedor = c.fornecedor ? c.fornecedor.nome : 'N/A';
                 const valorGlobalNum = parseCurrencyBR(c.valor_global);
                 const valorAcumuladoNum = parseCurrencyBR(c.valor_acumulado);
-                const saldoNum = Math.max(0, valorGlobalNum - valorAcumuladoNum);
-                
                 const valor = formatBRL(valorGlobalNum);
                 const valorParcela = c.valor_parcela ? formatBRL(parseCurrencyBR(c.valor_parcela)) : 'N/A';
-                const saldo = formatBRL(saldoNum);
                 
                 let dataVenc = 'N/A';
                 let statusClass = 'status-ativo';
@@ -441,8 +438,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <span class="detail-value">${valorParcela}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Saldo Remanescente</span>
-                                        <span class="detail-value">${saldo}</span>
+                                        <span class="detail-label">Modalidade</span>
+                                        <span class="detail-value">${c.modalidade || 'N/A'}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">CNPJ/CPF Fornecedor</span>
